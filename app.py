@@ -45,7 +45,7 @@ class User(db.Model):
     id = db.Column(db.Integer(), primary_key=True)
     line_id = db.Column(db.String(255), nullable=False)
     nonce = db.Column(db.String(255))
-    schedules = db.relationship('Schedule', backref='user_id')
+    schedules = db.relationship('Schedule', backref='user')
 
     def __repr__(self):
         return "User<{}, {}, {}, {}>".format(
@@ -70,7 +70,7 @@ db.create_all()
 1対多のリレーションの説明
 
 u1 = User(line_id="1234tanaka")
-s1 = Schedule(user_id=u1)
+s1 = Schedule(user=u1)
 """
 
 
@@ -221,8 +221,10 @@ def account_link(event):
 def create_schedule():
     for user in request.json["users"]:
         u = db.session.query(User).filter_by(nonce=user["nonce"]).first()
+        if u is None:
+            continue
         for i in range(len(user["info"])):
-            schedule = Schedule(user_id=u.id)
+            schedule = Schedule(user=u)
             schedule.info = user["info"][i]
             schedule.date = int(user["date"][i])
             db.session.add(schedule)

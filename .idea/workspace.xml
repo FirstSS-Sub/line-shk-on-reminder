@@ -2,10 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="46d9cb3f-4c14-4641-9e54-0c7467c1f629" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/line-shk-on-reminder.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/line-shk-on-reminder.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/app.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -91,7 +88,7 @@
       <workItem from="1596270303280" duration="46000" />
       <workItem from="1596270584151" duration="331000" />
       <workItem from="1596270932175" duration="3865000" />
-      <workItem from="1596282160761" duration="4603000" />
+      <workItem from="1596282160761" duration="7059000" />
     </task>
     <servers />
   </component>
