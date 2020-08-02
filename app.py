@@ -2,6 +2,7 @@
 # import urllib.request
 import os
 import requests
+import random
 # import sys
 # import json
 # from argparse import ArgumentParser
@@ -10,7 +11,7 @@ from flask import Flask, request, abort
 from linebot import (LineBotApi, WebhookHandler)
 from linebot.exceptions import (InvalidSignatureError)
 from linebot.models import (
-    MessageEvent, FollowEvent, AccountLinkEvent, TextMessage, ImageMessage, AudioMessage,
+    MessageEvent, FollowEvent, UnfollowEvent, AccountLinkEvent, TextMessage, ImageMessage, AudioMessage,
     TextSendMessage, QuickReplyButton,
     MessageAction, QuickReply,
     URIAction,  # ボタンを押すと指定したURLに飛べるアクション
@@ -44,7 +45,7 @@ class User(db.Model):
     __tablename__ = "User"
     id = db.Column(db.Integer(), primary_key=True)
     line_id = db.Column(db.String(255), nullable=False)
-    nonce = db.Column(db.String(255))
+    nonce = db.Column(db.String(255), default="")
     schedules = db.relationship('Schedule', backref='user')
 
     def __repr__(self):
@@ -108,7 +109,7 @@ def handle_follow(event):
     post_res = requests.post(url_items, headers=header)
 
     items = [URIAction(
-        uri="http://localhost:5000/login/?linkToken=" + post_res["linkToken"], label="連携する"
+        uri="http://k-on-schedule2.herokuapp.com/login/?linkToken=" + post_res["linkToken"], label="連携する"
     )]
 
     reply_text = [
@@ -124,70 +125,48 @@ def handle_follow(event):
     )
 
 
+@handler.add(UnfollowEvent)
+def handle_unfollow(event):
+    user = db.session.query(User).filter_by(line_id=event.source.user_id).first()
+    # ここでアプリの方の認証情報を削除
+    requests.post("http://k-on-schedule.herokuapp.com/api/unfollow?nonce=" + user.nonce)
+
+    db.session.delete(user)
+    db.session.commit()
+
+
 @handler.add(MessageEvent, message=(TextMessage, ImageMessage, AudioMessage))
 def message_type(event):
-    if event.message.text == "BBS":
-        bbs_message(event)
-    elif event.message.text == "MOVIE":
-        movie_message(event)
+    user = db.session.query(User).filter_by(line_id=event.source.user_id).first()
+    if user.nonce == "":
+        link_message(event)
+    elif "予定" in event.message.text or "今週" in event.message.text or "練習" in event.message.text:
+        schedule_message(event)
+    elif "じゃんけん" in event.message.text or "うしけん" in event.message.text:
+        rps_message(event)
+    elif event.message.text in (chr(0x100030), chr(0x100031), chr(0x100032)):
+        rps_result_message(event)
     else:
         quick_message(event)
 
 
 def quick_message(event):
-    menu_list = ["BBS", "MOVIE"]
-
+    # 1つのメッセージにクイックリプライボタンを13個まで設定できる
     menu_items = [QuickReplyButton(action=MessageAction(
         label=f"{menu}", text=f"{menu}"
-    )) for menu in menu_list]
+    )) for menu in ["今週の予定", "うしけんじゃんけん"]]
 
     messages1 = TextSendMessage(
-        text="どれを参照しますか？", quick_reply=QuickReply(items=menu_items)
+        text="何をするッスか？", quick_reply=QuickReply(items=menu_items)
     )
 
     line_bot_api.reply_message(event.reply_token, messages=messages1)
 
 
-def bbs_message(event):
-    year_list = ["16", "17", "18"]  # 2019年度はURLが違うため後に追加
-
-    bbs_items = [URIAction(
-        uri=f"https://shkeion{year}.jimdo.com/bbs/", label=f"20{year}"
-    ) for year in year_list]
-
-    bbs_items.append(URIAction(
-        uri=f"https://shkeion19.jimdofree.com/bbs/", label=f"2019"
-    ))
-
-    messages2 = TemplateSendMessage(alt_text="BBS", template=ButtonsTemplate(
-        text="どの年度を参照しますか？", actions=bbs_items
-    ))
-
-    line_bot_api.reply_message(event.reply_token, messages=messages2)
-
-
-def movie_message(event):
-    year_list = ["16", "17", "18"]  # 2019年度はURLが違うため後に追加
-
-    movie_items = [URIAction(
-        uri=f"https://shkeion{year}.jimdo.com/movie/", label=f"20{year}"
-    ) for year in year_list]
-
-    movie_items.append(URIAction(
-        uri=f"https://shkeion19.jimdofree.com/movie/", label=f"2019"
-    ))
-
-    messages2 = TemplateSendMessage(alt_text="MOVIE", template=ButtonsTemplate(
-        text="どの年度を参照しますか？", actions=movie_items
-    ))
-
-    line_bot_api.reply_message(event.reply_token, messages=messages2)
-
-
-def start_link(event):
+def link_message(event):
     user_id = event.source.user_id
     header = {'Authorization': 'Bearer {}'.format(YOUR_CHANNEL_ACCESS_TOKEN)}
-    url_items = "https://api.line.me/v2/bot/user/" + str(user_id) + "/linkToken"
+    url_items = "https://api.line.me/v2/bot/user/" + user_id + "/linkToken"
     post_res = requests.post(url_items, headers=header)
 
     items = [URIAction(
@@ -199,6 +178,58 @@ def start_link(event):
     ))
 
     line_bot_api.reply_message(event.reply_token, messages=messages)
+
+
+def schedule_message(event):
+    exit()
+
+
+def rps_message(event):
+    message1 = TextSendMessage("うーしけーんじゃんけん、じゃんけん...")
+
+    rps_items = [
+        QuickReplyButton(action=MessageAction(
+            label="グー！", text=chr(0x100032))),
+        QuickReplyButton(action=MessageAction(
+            label="チョキ！", text=chr(0x100030))),
+        QuickReplyButton(action=MessageAction(
+            label="パー！", text=chr(0x100031)))
+    ]
+    message2 = TemplateSendMessage(alt_text="RPS", template=ButtonsTemplate(actions=rps_items))
+
+    line_bot_api.reply_message(event.reply_token, messages=[message1,message2])
+
+
+def rps_result_message(event):
+    x = random.randrange(1, 501)
+    message1 = TextSendMessage("ポン！")
+
+    # 相手がグー
+    if event.message.text == chr(0x100032):
+        if x == 1:
+            message2 = TextSendMessage(chr(0x100030))
+            message3 = TextSendMessage("自分の負けッス...\n完敗ッス。")
+        else:
+            message2 = TextSendMessage(chr(0x100031))
+            message3 = TextSendMessage("自分の勝ちッス！\nいつでもかかってこいッス！")
+    # 相手がチョキ
+    elif event.message.text == chr(0x100030):
+        if x == 1:
+            message2 = TextSendMessage(chr(0x100031))
+            message3 = TextSendMessage("自分の負けッス...\n完敗ッス。")
+        else:
+            message2 = TextSendMessage(chr(0x100032))
+            message3 = TextSendMessage("自分の勝ちッス！\nいつでもかかってこいッス！")
+    # 相手がパー
+    else:
+        if x == 1:
+            message2 = TextSendMessage(chr(0x100032))
+            message3 = TextSendMessage("自分の負けッス...\n完敗ッス。")
+        else:
+            message2 = TextSendMessage(chr(0x100030))
+            message3 = TextSendMessage("自分の勝ちッス！\nいつでもかかってこいッス！")
+
+    line_bot_api.reply_message(event.reply_token, messages=[message1, message2, message3])
 
 
 @handler.add(AccountLinkEvent)
