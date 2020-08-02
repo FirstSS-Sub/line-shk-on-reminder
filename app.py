@@ -129,7 +129,7 @@ def handle_follow(event):
 def handle_unfollow(event):
     user = db.session.query(User).filter_by(line_id=event.source.user_id).first()
     # ここでアプリの方の認証情報を削除
-    requests.post("http://k-on-schedule.herokuapp.com/api/unfollow?nonce=" + user.nonce)
+    requests.post("http://k-on-schedule2.herokuapp.com/api/unfollow?nonce=" + user.nonce)
 
     db.session.delete(user)
     db.session.commit()
