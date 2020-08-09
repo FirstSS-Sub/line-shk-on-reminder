@@ -173,7 +173,8 @@ def link_message(event):
     user_id = event.source.user_id
     header = {'Authorization': 'Bearer {}'.format(YOUR_CHANNEL_ACCESS_TOKEN)}
     url_items = "https://api.line.me/v2/bot/user/" + user_id + "/linkToken"
-    post_res = requests.post(url_items, headers=header)
+    post = requests.post(url_items, headers=header)
+    post_res = post.json()  # jsonに変換しなければいけない
 
     items = [URIAction(
         uri="http://localhost:5000/login/?linkToken=" + post_res["linkToken"], label="連携する"
