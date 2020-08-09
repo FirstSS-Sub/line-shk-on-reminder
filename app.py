@@ -111,7 +111,8 @@ def handle_follow(event):
 
     header = {'Authorization': 'Bearer {}'.format(YOUR_CHANNEL_ACCESS_TOKEN)}
     url_items = "https://api.line.me/v2/bot/user/" + event.source.user_id + "/linkToken"
-    post_res = requests.post(url_items, headers=header)
+    post = requests.post(url_items, headers=header)
+    post_res = post.json()  # jsonに変換しなければいけない
 
     items = [URIAction(
         uri="http://k-on-schedule2.herokuapp.com/login/?linkToken=" + post_res["linkToken"], label="連携する"
