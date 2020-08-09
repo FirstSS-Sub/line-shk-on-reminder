@@ -58,7 +58,7 @@ class Schedule(db.Model):
     id = db.Column(db.Integer(), primary_key=True)
     info = db.Column(db.String(255), nullable=False)
     date = db.Column(db.Integer(), nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('User.id'), nullable=False)
 
     def __repr__(self):
         return "Schedule<{}, {}, {}, {}>".format(
