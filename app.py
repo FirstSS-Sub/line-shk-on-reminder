@@ -75,7 +75,7 @@ s1 = Schedule(user=u1)
 """
 
 
-@app.route("/", methods=['POST'])
+@app.route("/")
 def hello():
     return "Hello, K-ON!"
 
