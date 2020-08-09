@@ -75,6 +75,11 @@ s1 = Schedule(user=u1)
 """
 
 
+@app.route("/", methods=['POST'])
+def hello():
+    return "Hello, K-ON!"
+
+
 # Webhookからのリクエストをチェックする
 @app.route("/callback", methods=['POST'])
 def callback():
