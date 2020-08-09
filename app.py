@@ -105,9 +105,11 @@ def callback():
 @handler.add(FollowEvent)
 def handle_follow(event):
     user = User()
-    user.line_id = generate_password_hash(event.source.user_id)
+    user.line_id = event.source.user_id
     db.session.add(user)
     db.session.commit()
+
+    app.logger.info("Registered ".format(event.source.user_id))
 
     header = {'Authorization': 'Bearer {}'.format(YOUR_CHANNEL_ACCESS_TOKEN)}
     url_items = "https://api.line.me/v2/bot/user/" + event.source.user_id + "/linkToken"
@@ -242,7 +244,7 @@ def rps_result_message(event):
 @handler.add(AccountLinkEvent)
 def account_link(event):
     if event.link.result == "ok":
-        user = db.session.query(User).filter_by(line_id=event.source.user_id).first()
+        user = db.session.query(User).filter_by(line_id=check_password_hash(event.source.user_id)).first()
         user.nonce = event.link.nonce
         line_bot_api.reply_message(
             event.reply_token,
