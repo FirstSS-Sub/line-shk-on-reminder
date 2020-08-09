@@ -42,7 +42,7 @@ db = SQLAlchemy(app)
 
 
 class User(db.Model):
-    __tablename__ = "User"
+    __tablename__ = "user"
     id = db.Column(db.Integer(), primary_key=True)
     line_id = db.Column(db.String(255), nullable=False)
     nonce = db.Column(db.String(255), default="")
@@ -54,11 +54,11 @@ class User(db.Model):
 
 
 class Schedule(db.Model):
-    __tablename__ = "Schedule"
+    __tablename__ = "schedule"
     id = db.Column(db.Integer(), primary_key=True)
     info = db.Column(db.String(255), nullable=False)
     date = db.Column(db.Integer(), nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey('User.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
     def __repr__(self):
         return "Schedule<{}, {}, {}, {}>".format(
